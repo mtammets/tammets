@@ -54,8 +54,9 @@ EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 RESEND_API_URL = "https://api.resend.com/emails"
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
 RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "broneering@send.tammets.ee").strip()
-RESEND_FROM_NAME = os.getenv("RESEND_FROM_NAME", "Tammets.ee").strip()
+RESEND_FROM_NAME = os.getenv("RESEND_FROM_NAME", "Marek Tammets").strip()
 BOOKING_TO_EMAIL = os.getenv("BOOKING_TO_EMAIL", "marek@tammets.ee").strip()
+BOOKING_BCC_EMAIL = os.getenv("BOOKING_BCC_EMAIL", "").strip()
 Response = tuple[HTTPStatus, list[tuple[str, str]], bytes]
 
 
@@ -65,6 +66,10 @@ class DeliveryError(Exception):
 
 def resend_is_configured() -> bool:
     return bool(RESEND_API_KEY and RESEND_FROM_EMAIL and BOOKING_TO_EMAIL)
+
+
+def parse_email_list(raw_value: str) -> list[str]:
+    return [item.strip() for item in raw_value.split(",") if item.strip()]
 
 
 def normalize_text(value: object) -> str:
@@ -213,16 +218,14 @@ def send_email_via_resend(reference: str, details: dict) -> str:
 
     payload = {
         "from": f"{RESEND_FROM_NAME} <{RESEND_FROM_EMAIL}>",
-        "to": [BOOKING_TO_EMAIL],
+        "to": parse_email_list(BOOKING_TO_EMAIL),
         "subject": build_email_subject(details),
         "html": build_email_html(reference, details),
         "text": build_email_text(reference, details),
         "reply_to": details["email"],
-        "headers": {
-            "Reply-To": details["email"],
-            "X-Booking-Reference": reference,
-        },
     }
+    if BOOKING_BCC_EMAIL:
+        payload["bcc"] = parse_email_list(BOOKING_BCC_EMAIL)
     encoded = json.dumps(payload).encode("utf-8")
 
     request = Request(RESEND_API_URL, data=encoded, method="POST")
