@@ -719,6 +719,12 @@ body.modal-open {
 }
 
 @media (max-width: 760px) {
+  html,
+  body {
+    background: #131418;
+    background-color: #131418;
+  }
+
   .app-shell {
     width: min(100vw - 18px, 1320px);
     padding-top: 2px;
