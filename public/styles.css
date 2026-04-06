@@ -453,6 +453,8 @@ textarea {
 
 .field-card-note textarea {
   min-height: 94px;
+  padding: 3px 2px 2px;
+  line-height: 1.45;
   resize: vertical;
 }
 
