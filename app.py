@@ -328,7 +328,7 @@ def handle_post_request(path: str, raw_body: bytes) -> Response:
 
 
 def handle_request(method: str, path: str, raw_body: bytes = b"") -> Response:
-    if method == "GET":
+    if method in {"GET", "HEAD"}:
         if path == "/api/availability":
             return json_response(serialize_availability())
         return static_response(path)
@@ -345,19 +345,23 @@ class BookingHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         self.dispatch_request()
 
+    def do_HEAD(self) -> None:
+        self.dispatch_request(send_body=False)
+
     def do_POST(self) -> None:
         content_length = int(self.headers.get("Content-Length", 0))
         raw_body = self.rfile.read(content_length) if content_length > 0 else b""
         self.dispatch_request(raw_body)
 
-    def dispatch_request(self, raw_body: bytes = b"") -> None:
+    def dispatch_request(self, raw_body: bytes = b"", send_body: bool = True) -> None:
         parsed = urlparse(self.path)
         status, headers, body = handle_request(self.command, parsed.path, raw_body)
         self.send_response(status)
         for header_name, header_value in headers:
             self.send_header(header_name, header_value)
         self.end_headers()
-        self.wfile.write(body)
+        if send_body:
+            self.wfile.write(body)
 
     def log_message(self, format: str, *args) -> None:
         return
@@ -376,6 +380,8 @@ def application(environ: dict, start_response) -> list[bytes]:
     raw_body = body_stream.read(content_length) if body_stream and content_length > 0 else b""
     status, headers, body = handle_request(method, path, raw_body)
     start_response(f"{status.value} {status.phrase}", headers)
+    if method == "HEAD":
+        return [b""]
     return [body]
 
 
