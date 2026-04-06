@@ -57,6 +57,9 @@
           <div class="visual-copy">
             <p class="eyebrow">Õhtujuht</p>
             <h1>Marek Tammets</h1>
+            <button class="bio-trigger" type="button" id="bio-trigger" aria-controls="bio-modal" aria-expanded="false">
+              Kes on Marek?
+            </button>
           </div>
         </section>
 
@@ -132,6 +135,35 @@
         </section>
       </main>
 
+      <div class="bio-modal" id="bio-modal" hidden>
+        <button class="bio-backdrop" type="button" data-bio-close aria-label="Sulge tutvustus"></button>
+        <section class="bio-dialog" role="dialog" aria-modal="true" aria-labelledby="bio-title">
+          <div class="bio-header">
+            <div>
+              <p class="bio-kicker">Marek Tammets</p>
+              <h3 id="bio-title">Õhtujuht, esineja ja parodist</h3>
+            </div>
+            <button class="bio-close" type="button" data-bio-close aria-label="Sulge">Sulge</button>
+          </div>
+          <div class="bio-content">
+            <p>
+              Marek Tammets on õhtujuht ja esineja, kelle tugevuseks on vahetu kontakt publikuga,
+              loomulik huumor ja tugev lavaline kohalolu.
+            </p>
+            <p>
+              Ta on õppinud näitlejaks lavakunstikoolis aastatel 2004–2008 ning on tuntud oma oskuslike
+              paroodiate poolest, kehastades värvikalt mitmeid Eesti armastatud tegelasi, nende seas
+              Lennart Meri, Sal-Saller, Jüri Homenja ja Jaagup Kreem. Laiema tuntuse tõi Marekule
+              telesaate „Täheks sündinud” esimese hooaja võit, kus ta paistis silma eriti meeldejääva
+              Jaagup Kreemi kehastusega.
+            </p>
+            <p>
+              Õhtujuhina toob ta lavale professionaalsuse, hea energia ja elava publikutunnetuse,
+              muutes iga sündmuse meeldejäävaks elamuseks.
+            </p>
+          </div>
+        </section>
+      </div>
     </div>
 
     <script src="/app.js" defer></script>

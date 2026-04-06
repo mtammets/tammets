@@ -219,6 +219,33 @@ textarea {
   max-width: 7ch;
 }
 
+.bio-trigger {
+  justify-self: flex-start;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 700;
+  background: rgba(16, 21, 27, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 10px 24px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+  transition:
+    transform var(--ease),
+    border-color var(--ease),
+    background var(--ease);
+}
+
+.bio-trigger:hover,
+.bio-trigger:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(240, 201, 137, 0.42);
+  background: rgba(16, 21, 27, 0.58);
+}
+
 .lead {
   max-width: 28ch;
   margin: 0;
@@ -544,6 +571,107 @@ textarea {
   transform: translateY(0);
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
+.bio-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: end center;
+  padding: 24px;
+}
+
+.bio-modal[hidden] {
+  display: none;
+}
+
+.bio-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(7, 10, 13, 0.6);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+}
+
+.bio-dialog {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(78vh, 760px);
+  overflow: auto;
+  padding: 26px 28px 30px;
+  border: 1px solid rgba(22, 25, 29, 0.08);
+  border-radius: 30px;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top right, rgba(216, 164, 99, 0.18), transparent 28%),
+    linear-gradient(180deg, #f6efe4 0%, #f1e6d6 100%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+  transform: translateY(24px);
+  opacity: 0;
+  transition:
+    transform 240ms ease,
+    opacity 240ms ease;
+}
+
+.bio-modal.is-open .bio-dialog {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.bio-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(22, 25, 29, 0.08);
+}
+
+.bio-kicker {
+  margin: 0 0 6px;
+  color: #a66b38;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.bio-header h3 {
+  margin: 0;
+  font-family: "Fraunces", serif;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  letter-spacing: -0.04em;
+  line-height: 0.96;
+}
+
+.bio-close {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(22, 25, 29, 0.12);
+  border-radius: 999px;
+  color: rgba(22, 25, 29, 0.82);
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.58);
+  cursor: pointer;
+}
+
+.bio-content {
+  display: grid;
+  gap: 16px;
+  padding-top: 18px;
+}
+
+.bio-content p {
+  margin: 0;
+  color: rgba(22, 25, 29, 0.82);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
 @media (max-width: 1100px) {
   .single-view {
     grid-template-columns: 1fr;
@@ -568,6 +696,12 @@ textarea {
     inset: auto 18px 18px;
   }
 
+  .bio-trigger {
+    min-height: 42px;
+    padding: 0 14px;
+    font-size: 0.94rem;
+  }
+
   .visual-indicators {
     top: 18px;
     right: 18px;
@@ -589,5 +723,25 @@ textarea {
 
   .booking-form-intro {
     align-items: flex-start;
+  }
+
+  .bio-modal {
+    padding: 14px 8px 0;
+  }
+
+  .bio-dialog {
+    width: 100%;
+    max-height: 84vh;
+    padding: 22px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    border-radius: 26px 26px 0 0;
+  }
+
+  .bio-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bio-close {
+    align-self: stretch;
   }
 }

@@ -6,6 +6,10 @@ const slotHint = document.querySelector("#slot-hint");
 const formStatus = document.querySelector("#form-status");
 const visualSlides = Array.from(document.querySelectorAll("[data-visual-slide]"));
 const visualDots = Array.from(document.querySelectorAll("[data-visual-dot]"));
+const bioTrigger = document.querySelector("#bio-trigger");
+const bioModal = document.querySelector("#bio-modal");
+const bioCloseButtons = Array.from(document.querySelectorAll("[data-bio-close]"));
+const bioClosePrimary = document.querySelector(".bio-close");
 
 let availabilityState = {
   timeSlots: [],
@@ -49,6 +53,48 @@ function setupVisualRotation() {
     const nextIndex = (activeIndex + 1) % visualSlides.length;
     renderVisualState(nextIndex);
   }, 4200);
+}
+
+function setupBioModal() {
+  if (!bioTrigger || !bioModal) return;
+
+  let closeTimer = null;
+
+  const openBioModal = () => {
+    if (closeTimer) {
+      window.clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+
+    bioModal.hidden = false;
+    document.body.classList.add("modal-open");
+    bioTrigger.setAttribute("aria-expanded", "true");
+
+    window.requestAnimationFrame(() => {
+      bioModal.classList.add("is-open");
+      bioClosePrimary?.focus();
+    });
+  };
+
+  const closeBioModal = () => {
+    bioModal.classList.remove("is-open");
+    document.body.classList.remove("modal-open");
+    bioTrigger.setAttribute("aria-expanded", "false");
+
+    closeTimer = window.setTimeout(() => {
+      bioModal.hidden = true;
+      bioTrigger.focus();
+    }, 240);
+  };
+
+  bioTrigger.addEventListener("click", openBioModal);
+  bioCloseButtons.forEach((button) => button.addEventListener("click", closeBioModal));
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !bioModal.hidden) {
+      closeBioModal();
+    }
+  });
 }
 
 function renderSlots() {
@@ -170,6 +216,7 @@ form.addEventListener("submit", handleSubmit);
 
 setupReveal();
 setupVisualRotation();
+setupBioModal();
 fetchAvailability().catch((error) => {
   showStatus(error.message || "Saadavuse laadimine ebaõnnestus.", "error");
 });
