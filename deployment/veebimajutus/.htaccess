@@ -1,7 +1,7 @@
 Options +ExecCGI
 AddHandler fcgid-script .fcgi
 RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^cgi-bin/ - [L]
+RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 RewriteRule ^(.*)$ cgi-bin/dispatch.fcgi/$1 [QSA,L]
