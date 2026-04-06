@@ -27,6 +27,7 @@ RESEND_API_KEY=...
 RESEND_FROM_EMAIL=broneering@send.tammets.ee
 RESEND_FROM_NAME=Tammets.ee
 BOOKING_TO_EMAIL=marek@tammets.ee
+BOOKING_REPLY_TO_EMAIL=marek@tammets.ee
 ```
 
 `RESEND_FROM_EMAIL` peab kasutama täpselt seda domeeni või alamdomeeni, mille sa Resendis ära verifitseerid.

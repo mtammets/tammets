@@ -57,6 +57,7 @@ RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "broneering@send.tammets.ee")
 RESEND_FROM_NAME = os.getenv("RESEND_FROM_NAME", "Marek Tammets").strip()
 BOOKING_TO_EMAIL = os.getenv("BOOKING_TO_EMAIL", "marek@tammets.ee").strip()
 BOOKING_BCC_EMAIL = os.getenv("BOOKING_BCC_EMAIL", "").strip()
+BOOKING_REPLY_TO_EMAIL = os.getenv("BOOKING_REPLY_TO_EMAIL", BOOKING_TO_EMAIL.split(",")[0].strip()).strip()
 Response = tuple[HTTPStatus, list[tuple[str, str]], bytes]
 LONG_CACHE_SUFFIXES = {".css", ".js", ".jpg", ".jpeg", ".png", ".webp", ".svg"}
 
@@ -75,6 +76,29 @@ def parse_email_list(raw_value: str) -> list[str]:
 
 def normalize_text(value: object) -> str:
     return str(value or "").strip()
+
+
+def format_event_type(value: str) -> str:
+    return EVENT_TYPES.get(value, value) if value else "Täpsustamata"
+
+
+def format_guest_count(value: int | None) -> str:
+    return str(value) if value is not None else "Täpsustamata"
+
+
+def format_location(value: str) -> str:
+    return value or "Täpsustamata"
+
+
+def format_time_slot(value: str) -> str:
+    return value or "Täpsustamata"
+
+
+def format_display_date(value: str) -> str:
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").strftime("%d.%m.%Y")
+    except ValueError:
+        return value
 
 
 def serialize_availability() -> dict:
@@ -154,7 +178,7 @@ def validate_booking(payload: dict) -> tuple[dict, list[str]]:
     return normalized, errors
 
 
-def build_email_subject(details: dict) -> str:
+def build_owner_email_subject(details: dict) -> str:
     parts = ["Uus päring tammets.ee lehelt"]
     if details["eventType"]:
         parts.append(EVENT_TYPES.get(details["eventType"], details["eventType"]))
@@ -164,13 +188,14 @@ def build_email_subject(details: dict) -> str:
     return " • ".join(parts)
 
 
-def build_email_html(reference: str, details: dict) -> str:
-    event_type = EVENT_TYPES.get(details["eventType"], details["eventType"]) if details["eventType"] else "Täpsustamata"
+def build_owner_email_html(reference: str, details: dict) -> str:
+    event_type = format_event_type(details["eventType"])
     created_at = datetime.now().strftime("%d.%m.%Y %H:%M")
     notes = escape(details["notes"]) if details["notes"] else "Puudub"
-    guest_count = details["guestCount"] if details["guestCount"] is not None else "Täpsustamata"
-    location = escape(details["location"]) if details["location"] else "Täpsustamata"
-    time_slot = escape(details["timeSlot"]) if details["timeSlot"] else "Täpsustamata"
+    guest_count = format_guest_count(details["guestCount"])
+    location = escape(format_location(details["location"]))
+    time_slot = escape(format_time_slot(details["timeSlot"]))
+    event_date = escape(format_display_date(details["eventDate"]))
 
     return f"""
     <div style="font-family:Arial,sans-serif;color:#16191d;line-height:1.6;">
@@ -181,7 +206,7 @@ def build_email_html(reference: str, details: dict) -> str:
         <tr><td style="padding:8px 0;font-weight:700;">E-post</td><td style="padding:8px 0;">{escape(details["email"])}</td></tr>
         <tr><td style="padding:8px 0;font-weight:700;">Telefon</td><td style="padding:8px 0;">{escape(details["phone"])}</td></tr>
         <tr><td style="padding:8px 0;font-weight:700;">Tüüp</td><td style="padding:8px 0;">{escape(event_type)}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Kuupäev</td><td style="padding:8px 0;">{escape(details["eventDate"])}</td></tr>
+        <tr><td style="padding:8px 0;font-weight:700;">Kuupäev</td><td style="padding:8px 0;">{event_date}</td></tr>
         <tr><td style="padding:8px 0;font-weight:700;">Algusaeg</td><td style="padding:8px 0;">{time_slot}</td></tr>
         <tr><td style="padding:8px 0;font-weight:700;">Külalisi</td><td style="padding:8px 0;">{guest_count}</td></tr>
         <tr><td style="padding:8px 0;font-weight:700;">Asukoht</td><td style="padding:8px 0;">{location}</td></tr>
@@ -192,8 +217,8 @@ def build_email_html(reference: str, details: dict) -> str:
     """.strip()
 
 
-def build_email_text(reference: str, details: dict) -> str:
-    event_type = EVENT_TYPES.get(details["eventType"], details["eventType"]) if details["eventType"] else "Täpsustamata"
+def build_owner_email_text(reference: str, details: dict) -> str:
+    event_type = format_event_type(details["eventType"])
     lines = [
         "Uus päring tammets.ee lehelt",
         "",
@@ -202,16 +227,95 @@ def build_email_text(reference: str, details: dict) -> str:
         f"E-post: {details['email']}",
         f"Telefon: {details['phone']}",
         f"Tüüp: {event_type}",
-        f"Kuupäev: {details['eventDate']}",
-        f"Algusaeg: {details['timeSlot'] or 'Täpsustamata'}",
-        f"Külalisi: {details['guestCount'] if details['guestCount'] is not None else 'Täpsustamata'}",
-        f"Asukoht: {details['location'] or 'Täpsustamata'}",
+        f"Kuupäev: {format_display_date(details['eventDate'])}",
+        f"Algusaeg: {format_time_slot(details['timeSlot'])}",
+        f"Külalisi: {format_guest_count(details['guestCount'])}",
+        f"Asukoht: {format_location(details['location'])}",
         f"Lisainfo: {details['notes'] or 'Puudub'}",
     ]
     return "\n".join(lines)
 
 
-def send_email_via_resend(reference: str, details: dict) -> str:
+def build_confirmation_subject() -> str:
+    return "Aitäh, sinu päring on käes"
+
+
+def build_confirmation_html(reference: str, details: dict) -> str:
+    first_name = escape(details["fullName"].split()[0]) if details["fullName"] else "Tere"
+    event_type = escape(format_event_type(details["eventType"]))
+    event_date = escape(format_display_date(details["eventDate"]))
+    time_slot = escape(format_time_slot(details["timeSlot"]))
+    location = escape(format_location(details["location"]))
+
+    return f"""
+    <div style="margin:0;padding:24px 0;background:#f4efe7;font-family:Arial,sans-serif;color:#16191d;">
+      <div style="max-width:620px;margin:0 auto;padding:0 20px;">
+        <div style="overflow:hidden;border:1px solid #e5d8c7;border-radius:24px;background:linear-gradient(180deg,#f8f3eb 0%,#f1e7d8 100%);box-shadow:0 22px 54px rgba(59,42,20,0.10);">
+          <div style="height:4px;background:linear-gradient(90deg,#cf9a60,#a2704e);"></div>
+          <div style="padding:28px 28px 30px;">
+            <p style="margin:0 0 10px;color:#a66b38;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;">Marek Tammets</p>
+            <h1 style="margin:0 0 16px;font-size:30px;line-height:1.05;">Aitäh, sinu päring on käes</h1>
+            <p style="margin:0 0 16px;font-size:16px;line-height:1.65;">Tere, {first_name}!</p>
+            <p style="margin:0 0 16px;font-size:16px;line-height:1.65;">
+              Sain sinu päringu kätte ja vaatan selle peagi üle. Vastan sulle esimesel võimalusel, et detailid paika saada.
+            </p>
+            <div style="margin:22px 0;padding:18px 20px;border:1px solid #e7dccd;border-radius:18px;background:rgba(255,255,255,0.46);">
+              <p style="margin:0 0 12px;color:#5d5347;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Sinu päring</p>
+              <table style="width:100%;border-collapse:collapse;font-size:15px;line-height:1.55;">
+                <tr><td style="padding:6px 0;font-weight:700;">Tüüp</td><td style="padding:6px 0;">{event_type}</td></tr>
+                <tr><td style="padding:6px 0;font-weight:700;">Kuupäev</td><td style="padding:6px 0;">{event_date}</td></tr>
+                <tr><td style="padding:6px 0;font-weight:700;">Algusaeg</td><td style="padding:6px 0;">{time_slot}</td></tr>
+                <tr><td style="padding:6px 0;font-weight:700;">Asukoht</td><td style="padding:6px 0;">{location}</td></tr>
+              </table>
+            </div>
+            <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#4d4640;">
+              Kui soovid seni midagi lisada või täpsustada, vasta sellele kirjale.
+            </p>
+            <p style="margin:20px 0 0;font-size:15px;line-height:1.7;">
+              Tervitades<br />
+              <strong>Marek Tammets</strong>
+            </p>
+            <p style="margin:18px 0 0;color:#746a5f;font-size:12px;line-height:1.5;">
+              Viide: {escape(reference)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    """.strip()
+
+
+def build_confirmation_text(reference: str, details: dict) -> str:
+    first_name = details["fullName"].split()[0] if details["fullName"] else "Tere"
+    lines = [
+        f"Tere, {first_name}!",
+        "",
+        "Aitäh päringu eest. Sain selle kätte ja vastan sulle peagi.",
+        "",
+        "Sinu päring:",
+        f"Tüüp: {format_event_type(details['eventType'])}",
+        f"Kuupäev: {format_display_date(details['eventDate'])}",
+        f"Algusaeg: {format_time_slot(details['timeSlot'])}",
+        f"Asukoht: {format_location(details['location'])}",
+        "",
+        "Kui soovid midagi lisada või täpsustada, vasta sellele kirjale.",
+        "",
+        "Marek Tammets",
+        f"Viide: {reference}",
+    ]
+    return "\n".join(lines)
+
+
+def send_resend_email(
+    *,
+    to: list[str],
+    subject: str,
+    html: str,
+    text: str,
+    idempotency_key: str,
+    reply_to: str | None = None,
+    bcc: list[str] | None = None,
+) -> str:
     if not resend_is_configured():
         raise DeliveryError(
             "Resend ei ole seadistatud. Lisa .env faili RESEND_API_KEY, RESEND_FROM_EMAIL ja BOOKING_TO_EMAIL."
@@ -219,21 +323,22 @@ def send_email_via_resend(reference: str, details: dict) -> str:
 
     payload = {
         "from": f"{RESEND_FROM_NAME} <{RESEND_FROM_EMAIL}>",
-        "to": parse_email_list(BOOKING_TO_EMAIL),
-        "subject": build_email_subject(details),
-        "html": build_email_html(reference, details),
-        "text": build_email_text(reference, details),
-        "reply_to": details["email"],
+        "to": to,
+        "subject": subject,
+        "html": html,
+        "text": text,
     }
-    if BOOKING_BCC_EMAIL:
-        payload["bcc"] = parse_email_list(BOOKING_BCC_EMAIL)
+    if reply_to:
+        payload["reply_to"] = reply_to
+    if bcc:
+        payload["bcc"] = bcc
     encoded = json.dumps(payload).encode("utf-8")
 
     request = Request(RESEND_API_URL, data=encoded, method="POST")
     request.add_header("Authorization", f"Bearer {RESEND_API_KEY}")
     request.add_header("Content-Type", "application/json")
     request.add_header("User-Agent", "tammets-ee-booking/1.0")
-    request.add_header("Idempotency-Key", reference)
+    request.add_header("Idempotency-Key", idempotency_key)
 
     try:
         with urlopen(request, timeout=20) as response:
@@ -260,6 +365,29 @@ def send_email_via_resend(reference: str, details: dict) -> str:
         raise DeliveryError("Resend ei tagastanud meili ID-d.")
 
     return email_id
+
+
+def send_owner_email_via_resend(reference: str, details: dict) -> str:
+    return send_resend_email(
+        to=parse_email_list(BOOKING_TO_EMAIL),
+        bcc=parse_email_list(BOOKING_BCC_EMAIL) if BOOKING_BCC_EMAIL else None,
+        subject=build_owner_email_subject(details),
+        html=build_owner_email_html(reference, details),
+        text=build_owner_email_text(reference, details),
+        reply_to=details["email"],
+        idempotency_key=f"{reference}-owner",
+    )
+
+
+def send_confirmation_email_via_resend(reference: str, details: dict) -> str:
+    return send_resend_email(
+        to=[details["email"]],
+        subject=build_confirmation_subject(),
+        html=build_confirmation_html(reference, details),
+        text=build_confirmation_text(reference, details),
+        reply_to=BOOKING_REPLY_TO_EMAIL,
+        idempotency_key=f"{reference}-confirmation",
+    )
 
 
 def json_response(payload: dict, status: HTTPStatus = HTTPStatus.OK) -> Response:
@@ -325,15 +453,23 @@ def handle_post_request(path: str, raw_body: bytes) -> Response:
 
     reference = f"MT-{datetime.now().strftime('%Y%m%d')}-{secrets.token_hex(3).upper()}"
     try:
-        email_id = send_email_via_resend(reference, normalized)
+        owner_email_id = send_owner_email_via_resend(reference, normalized)
     except DeliveryError as exc:
         return json_response({"error": str(exc)}, status=HTTPStatus.BAD_GATEWAY)
 
+    confirmation_email_id = ""
+    try:
+        confirmation_email_id = send_confirmation_email_via_resend(reference, normalized)
+    except DeliveryError as exc:
+        print(f"Automaatvastuse saatmine ebaõnnestus viitega {reference}: {exc}")
+
     return json_response(
         {
-            "message": "Päring saadetud. Marek saab selle e-postile ja võtab sinuga ühendust.",
+            "message": "Päring saadetud. Kinnitus läks e-postile ja Marek võtab sinuga peagi ühendust.",
             "reference": reference,
-            "emailId": email_id,
+            "emailId": owner_email_id,
+            "confirmationEmailId": confirmation_email_id,
+            "confirmationSent": bool(confirmation_email_id),
         },
         status=HTTPStatus.CREATED,
     )
