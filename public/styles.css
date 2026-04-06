@@ -1,0 +1,591 @@
+:root {
+  --bg: #0d1013;
+  --bg-soft: #171c21;
+  --panel: rgba(20, 24, 29, 0.82);
+  --panel-strong: rgba(17, 20, 25, 0.94);
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --text: #f5efe5;
+  --muted: rgba(245, 239, 229, 0.72);
+  --muted-dark: rgba(18, 22, 28, 0.62);
+  --ink: #16191d;
+  --surface: #f5efe5;
+  --surface-alt: #ece1d0;
+  --accent: #d8a463;
+  --accent-strong: #c37d56;
+  --success: #3a7a55;
+  --danger: #a1493b;
+  --shadow: 0 28px 90px rgba(0, 0, 0, 0.28);
+  --radius-xl: 34px;
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-sm: 14px;
+  --ease: 220ms ease;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: "Manrope", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(216, 164, 99, 0.18), transparent 28%),
+    radial-gradient(circle at right top, rgba(195, 125, 86, 0.14), transparent 24%),
+    linear-gradient(180deg, #111418 0%, #0d1013 100%);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1320px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 20px 0 24px;
+}
+
+.micro-copy {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.single-view {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.92fr) minmax(0, 1.08fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.visual-panel,
+.intro-card,
+.availability-card,
+.booking-form {
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.visual-panel {
+  position: relative;
+  min-height: calc(100vh - 146px);
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: #0f1318;
+}
+
+.visual-stack {
+  position: absolute;
+  inset: 0;
+}
+
+.visual-slide {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  transform: scale(1.08);
+  transition:
+    opacity 1100ms ease,
+    transform 5200ms ease;
+}
+
+.visual-slide.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.visual-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(0.12) contrast(1.02) saturate(1.02);
+}
+
+.visual-slide:nth-child(1) .visual-image {
+  object-position: center 18%;
+}
+
+.visual-slide:nth-child(2) .visual-image {
+  object-position: center 28%;
+}
+
+.visual-slide:nth-child(3) .visual-image {
+  object-position: center 18%;
+}
+
+.visual-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 10, 13, 0.2) 0%, rgba(8, 10, 13, 0.62) 56%, rgba(8, 10, 13, 0.9) 100%),
+    radial-gradient(circle at 74% 14%, rgba(216, 164, 99, 0.22), transparent 26%),
+    radial-gradient(circle at 18% 70%, rgba(195, 125, 86, 0.16), transparent 24%);
+}
+
+.visual-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.28;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.visual-copy {
+  position: absolute;
+  inset: auto 24px 24px;
+  display: grid;
+  gap: 16px;
+  z-index: 2;
+}
+
+.visual-indicators {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+}
+
+.visual-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  transition:
+    width var(--ease),
+    background var(--ease),
+    transform var(--ease);
+}
+
+.visual-indicator.is-active {
+  width: 30px;
+  background: linear-gradient(90deg, rgba(240, 201, 137, 0.92), rgba(216, 164, 99, 0.92));
+  transform: translateY(-1px);
+}
+
+.eyebrow {
+  margin: 0;
+  color: #f0c989;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.eyebrow.small {
+  font-size: 0.72rem;
+}
+
+.visual-copy h1,
+.intro-card h2,
+.availability-head h3 {
+  margin: 0;
+  font-family: "Fraunces", serif;
+  letter-spacing: -0.04em;
+}
+
+.visual-copy h1 {
+  font-size: clamp(3rem, 5vw, 5.2rem);
+  line-height: 0.92;
+  max-width: 7ch;
+}
+
+.lead {
+  max-width: 28ch;
+  margin: 0;
+  color: rgba(245, 239, 229, 0.82);
+  font-size: 1.06rem;
+  line-height: 1.5;
+}
+
+.tag-row,
+.stat-row,
+.slot-list,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag-row span,
+.stat-row article,
+.availability-chip,
+.date-pill,
+.slot-button {
+  border-radius: 999px;
+}
+
+.tag-row span {
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stat-row article {
+  min-width: 96px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stat-row strong {
+  display: block;
+  font-size: 1.02rem;
+}
+
+.stat-row span {
+  color: rgba(245, 239, 229, 0.72);
+  font-size: 0.82rem;
+}
+
+.content-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.booking-form {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border-radius: 32px;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top right, rgba(216, 164, 99, 0.22), transparent 28%),
+    linear-gradient(180deg, #f4ecdf 0%, #ede2d1 100%);
+}
+
+.booking-form::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+}
+
+.booking-form-intro {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(22, 25, 29, 0.08);
+}
+
+.booking-form-intro h2 {
+  margin: 4px 0 0;
+  font-family: "Fraunces", serif;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+
+.form-eyebrow {
+  color: #a66b38;
+}
+
+.booking-form-note {
+  max-width: 24ch;
+  margin: 0;
+  color: rgba(22, 25, 29, 0.62);
+  line-height: 1.55;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.form-grid-full {
+  grid-column: 1 / -1;
+}
+
+.booking-form label {
+  display: grid;
+}
+
+.field-card {
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(22, 25, 29, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 14px 32px rgba(112, 77, 32, 0.06);
+  transition:
+    transform var(--ease),
+    border-color var(--ease),
+    background var(--ease),
+    box-shadow var(--ease);
+}
+
+.field-card:focus-within {
+  transform: translateY(-1px);
+  border-color: rgba(216, 164, 99, 0.94);
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 16px 36px rgba(112, 77, 32, 0.1);
+}
+
+.field-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(22, 25, 29, 0.62);
+}
+
+.booking-form input,
+.booking-form select,
+.booking-form textarea {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  padding: 0;
+  color: var(--ink);
+  background: transparent;
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease),
+    background var(--ease);
+}
+
+.booking-form input:focus,
+.booking-form select:focus,
+.booking-form textarea:focus {
+  outline: none;
+}
+
+.slot-picker {
+  margin: 16px 0;
+  padding: 18px;
+  border: 1px solid rgba(22, 25, 29, 0.08);
+  border-radius: 24px;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top right, rgba(216, 164, 99, 0.14), transparent 26%),
+    linear-gradient(135deg, #181d23, #252d36);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.16);
+}
+
+.slot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.slot-header strong {
+  font-size: 0.98rem;
+}
+
+.slot-header span {
+  color: rgba(245, 239, 229, 0.72);
+  font-size: 0.8rem;
+}
+
+.slot-button {
+  min-width: 94px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition:
+    transform var(--ease),
+    background var(--ease),
+    color var(--ease),
+    border-color var(--ease);
+}
+
+.slot-button:hover,
+.slot-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.slot-button.selected {
+  border-color: transparent;
+  color: var(--text);
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+}
+
+.slot-button.disabled {
+  opacity: 0.34;
+  cursor: not-allowed;
+}
+
+.field-card-note {
+  min-height: 162px;
+}
+
+.field-card-note textarea {
+  min-height: 94px;
+  resize: vertical;
+}
+
+.submit-button {
+  min-height: 58px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  background: linear-gradient(135deg, #14181d, #2f3640);
+  cursor: pointer;
+  transition:
+    transform var(--ease),
+    opacity var(--ease),
+    box-shadow var(--ease);
+}
+
+.submit-button:hover,
+.submit-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(23, 26, 31, 0.22);
+}
+
+.submit-button:disabled {
+  opacity: 0.68;
+  cursor: wait;
+}
+
+.form-actions {
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.form-action-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.form-action-copy strong {
+  font-size: 0.96rem;
+}
+
+.form-action-copy span {
+  color: rgba(22, 25, 29, 0.58);
+  font-size: 0.84rem;
+}
+
+.form-status {
+  margin: 0;
+  min-height: 22px;
+  width: 100%;
+  color: rgba(18, 22, 28, 0.62);
+  font-size: 0.9rem;
+}
+
+.form-status.success {
+  color: var(--success);
+}
+
+.form-status.error {
+  color: var(--danger);
+}
+
+.footer-note {
+  padding: 14px 2px 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.footer-note p {
+  margin: 0;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 650ms ease,
+    transform 650ms ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 1100px) {
+  .single-view {
+    grid-template-columns: 1fr;
+  }
+
+  .visual-panel {
+    min-height: 560px;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    width: min(100vw - 18px, 1320px);
+    padding-top: 10px;
+  }
+
+  .visual-panel {
+    min-height: 480px;
+  }
+
+  .visual-copy {
+    inset: auto 18px 18px;
+  }
+
+  .visual-indicators {
+    top: 18px;
+    right: 18px;
+  }
+
+  .slot-header,
+  .form-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-form {
+    padding: 16px;
+  }
+
+  .booking-form-intro {
+    align-items: flex-start;
+  }
+}
