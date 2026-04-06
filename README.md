@@ -45,3 +45,50 @@ BOOKING_TO_EMAIL=marek@tammets.ee
 - vorm saadab päringu Resendi API kaudu
 - kiri jõuab aadressile `marek@tammets.ee`
 - reply-to seatakse vormi täitja e-postile, nii et saad otse vastata
+
+## Ülespanek `tammets.ee` alla Veebimajutuses
+
+1. Ava serverisse SSH ühendus.
+2. Liigu domeeni juurkausta:
+
+```bash
+cd /www/apache/domains/www.tammets.ee
+```
+
+3. Klooni repo serverisse:
+
+```bash
+git clone git@github.com:mtammets/tammets.git
+```
+
+4. Tee virtualenv ja paigalda FastCGI tugi:
+
+```bash
+python3.9 -m venv ~/.virtualenvs/website
+source ~/.virtualenvs/website/bin/activate
+pip install -r /www/apache/domains/www.tammets.ee/tammets/deployment/veebimajutus/requirements.txt
+```
+
+5. Lisa serveris faili `/www/apache/domains/www.tammets.ee/tammets/.env` oma päris väärtused.
+
+6. Kopeeri FastCGI fail õigesse kohta:
+
+```bash
+mkdir -p ~/htdocs/cgi-bin
+cp /www/apache/domains/www.tammets.ee/tammets/deployment/veebimajutus/dispatch.fcgi ~/htdocs/cgi-bin/dispatch.fcgi
+chmod +x ~/htdocs/cgi-bin/dispatch.fcgi
+```
+
+7. Kopeeri rewrite reeglid:
+
+```bash
+cp /www/apache/domains/www.tammets.ee/tammets/deployment/veebimajutus/.htaccess ~/htdocs/.htaccess
+```
+
+8. Ava `https://tammets.ee`.
+
+Kui muudatused kohe ei rakendu, taaskäivita FastCGI protsess:
+
+```bash
+pkill -f dispatch.fcgi
+```

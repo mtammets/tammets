@@ -56,6 +56,7 @@ RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
 RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "broneering@send.tammets.ee").strip()
 RESEND_FROM_NAME = os.getenv("RESEND_FROM_NAME", "Tammets.ee").strip()
 BOOKING_TO_EMAIL = os.getenv("BOOKING_TO_EMAIL", "marek@tammets.ee").strip()
+Response = tuple[HTTPStatus, list[tuple[str, str]], bytes]
 
 
 class DeliveryError(Exception):
@@ -257,104 +258,128 @@ def send_email_via_resend(reference: str, details: dict) -> str:
     return email_id
 
 
+def json_response(payload: dict, status: HTTPStatus = HTTPStatus.OK) -> Response:
+    encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    return status, [("Content-Type", "application/json; charset=utf-8"), ("Content-Length", str(len(encoded)))], encoded
+
+
+def static_response(raw_path: str) -> Response:
+    request_path = raw_path or "/"
+    if request_path == "/":
+        request_path = "/index.html"
+
+    sanitized = request_path.lstrip("/")
+    if sanitized.startswith("images/"):
+        requested_file = (ROOT_DIR / sanitized).resolve()
+        root_dir = IMAGES_DIR.resolve()
+    else:
+        requested_file = (PUBLIC_DIR / sanitized).resolve()
+        root_dir = PUBLIC_DIR.resolve()
+
+    if root_dir not in requested_file.parents and requested_file != root_dir:
+        return json_response({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
+
+    if not requested_file.exists() or not requested_file.is_file():
+        return json_response({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
+
+    mime_type = mimetypes.guess_type(requested_file.name)[0] or "application/octet-stream"
+    content = requested_file.read_bytes()
+    return HTTPStatus.OK, [("Content-Type", mime_type), ("Content-Length", str(len(content)))], content
+
+
+def handle_post_request(path: str, raw_body: bytes) -> Response:
+    if path != "/api/bookings":
+        return json_response({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
+
+    if not raw_body:
+        return json_response({"error": "Request body puudub."}, status=HTTPStatus.BAD_REQUEST)
+
+    try:
+        payload = json.loads(raw_body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return json_response({"error": "Vigane JSON payload."}, status=HTTPStatus.BAD_REQUEST)
+
+    normalized, errors = validate_booking(payload)
+    if errors:
+        return json_response({"errors": errors}, status=HTTPStatus.BAD_REQUEST)
+
+    if not resend_is_configured():
+        return json_response(
+            {
+                "error": "Resend ei ole seadistatud. Lisa .env faili RESEND_API_KEY, RESEND_FROM_EMAIL ja BOOKING_TO_EMAIL."
+            },
+            status=HTTPStatus.SERVICE_UNAVAILABLE,
+        )
+
+    reference = f"MT-{datetime.now().strftime('%Y%m%d')}-{secrets.token_hex(3).upper()}"
+    try:
+        email_id = send_email_via_resend(reference, normalized)
+    except DeliveryError as exc:
+        return json_response({"error": str(exc)}, status=HTTPStatus.BAD_GATEWAY)
+
+    return json_response(
+        {
+            "message": "Päring saadetud. Marek saab selle e-postile ja võtab sinuga ühendust.",
+            "reference": reference,
+            "emailId": email_id,
+        },
+        status=HTTPStatus.CREATED,
+    )
+
+
+def handle_request(method: str, path: str, raw_body: bytes = b"") -> Response:
+    if method == "GET":
+        if path == "/api/availability":
+            return json_response(serialize_availability())
+        return static_response(path)
+
+    if method == "POST":
+        return handle_post_request(path, raw_body)
+
+    return json_response({"error": "Method not allowed"}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+
 class BookingHandler(BaseHTTPRequestHandler):
     server_version = "MarekTammetsServer/2.0"
 
     def do_GET(self) -> None:
-        parsed = urlparse(self.path)
-        if parsed.path == "/api/availability":
-            self.respond_json(serialize_availability())
-            return
-
-        self.serve_static(parsed.path)
+        self.dispatch_request()
 
     def do_POST(self) -> None:
-        parsed = urlparse(self.path)
-        if parsed.path != "/api/bookings":
-            self.respond_json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
-            return
-
         content_length = int(self.headers.get("Content-Length", 0))
-        if content_length <= 0:
-            self.respond_json({"error": "Request body puudub."}, status=HTTPStatus.BAD_REQUEST)
-            return
+        raw_body = self.rfile.read(content_length) if content_length > 0 else b""
+        self.dispatch_request(raw_body)
 
-        raw_body = self.rfile.read(content_length)
-        try:
-            payload = json.loads(raw_body.decode("utf-8"))
-        except json.JSONDecodeError:
-            self.respond_json({"error": "Vigane JSON payload."}, status=HTTPStatus.BAD_REQUEST)
-            return
-
-        normalized, errors = validate_booking(payload)
-        if errors:
-            self.respond_json({"errors": errors}, status=HTTPStatus.BAD_REQUEST)
-            return
-
-        if not resend_is_configured():
-            self.respond_json(
-                {
-                    "error": "Resend ei ole seadistatud. Lisa .env faili RESEND_API_KEY, RESEND_FROM_EMAIL ja BOOKING_TO_EMAIL."
-                },
-                status=HTTPStatus.SERVICE_UNAVAILABLE,
-            )
-            return
-
-        reference = f"MT-{datetime.now().strftime('%Y%m%d')}-{secrets.token_hex(3).upper()}"
-        try:
-            email_id = send_email_via_resend(reference, normalized)
-        except DeliveryError as exc:
-            self.respond_json({"error": str(exc)}, status=HTTPStatus.BAD_GATEWAY)
-            return
-
-        self.respond_json(
-            {
-                "message": "Päring saadetud. Marek saab selle e-postile ja võtab sinuga ühendust.",
-                "reference": reference,
-                "emailId": email_id,
-            },
-            status=HTTPStatus.CREATED,
-        )
-
-    def serve_static(self, raw_path: str) -> None:
-        request_path = raw_path or "/"
-        if request_path == "/":
-            request_path = "/index.html"
-
-        sanitized = request_path.lstrip("/")
-        if sanitized.startswith("images/"):
-            requested_file = (ROOT_DIR / sanitized).resolve()
-            root_dir = IMAGES_DIR.resolve()
-        else:
-            requested_file = (PUBLIC_DIR / sanitized).resolve()
-            root_dir = PUBLIC_DIR.resolve()
-
-        if root_dir not in requested_file.parents and requested_file != root_dir:
-            self.respond_json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
-            return
-
-        if not requested_file.exists() or not requested_file.is_file():
-            self.respond_json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
-            return
-
-        mime_type = mimetypes.guess_type(requested_file.name)[0] or "application/octet-stream"
-        content = requested_file.read_bytes()
-        self.send_response(HTTPStatus.OK)
-        self.send_header("Content-Type", mime_type)
-        self.send_header("Content-Length", str(len(content)))
-        self.end_headers()
-        self.wfile.write(content)
-
-    def respond_json(self, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
-        encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    def dispatch_request(self, raw_body: bytes = b"") -> None:
+        parsed = urlparse(self.path)
+        status, headers, body = handle_request(self.command, parsed.path, raw_body)
         self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(encoded)))
+        for header_name, header_value in headers:
+            self.send_header(header_name, header_value)
         self.end_headers()
-        self.wfile.write(encoded)
+        self.wfile.write(body)
 
     def log_message(self, format: str, *args) -> None:
         return
+
+
+def application(environ: dict, start_response) -> list[bytes]:
+    method = str(environ.get("REQUEST_METHOD", "GET")).upper()
+    path = str(environ.get("PATH_INFO", "/")) or "/"
+
+    try:
+        content_length = int(environ.get("CONTENT_LENGTH") or 0)
+    except ValueError:
+        content_length = 0
+
+    body_stream = environ.get("wsgi.input")
+    raw_body = body_stream.read(content_length) if body_stream and content_length > 0 else b""
+    status, headers, body = handle_request(method, path, raw_body)
+    start_response(f"{status.value} {status.phrase}", headers)
+    return [body]
+
+
+wsgi_app = application
 
 
 def run() -> None:
