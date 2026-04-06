@@ -253,9 +253,8 @@ def build_confirmation_html(reference: str, details: dict) -> str:
         <div style="overflow:hidden;border:1px solid #e5d8c7;border-radius:24px;background:linear-gradient(180deg,#f8f3eb 0%,#f1e7d8 100%);box-shadow:0 22px 54px rgba(59,42,20,0.10);">
           <div style="height:4px;background:linear-gradient(90deg,#cf9a60,#a2704e);"></div>
           <div style="padding:28px 28px 30px;">
-            <p style="margin:0 0 10px;color:#a66b38;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;">Marek Tammets</p>
+            <p style="margin:0 0 12px;font-size:16px;line-height:1.65;">Tere, {first_name}!</p>
             <h1 style="margin:0 0 16px;font-size:30px;line-height:1.05;">Aitäh, sinu päring on käes</h1>
-            <p style="margin:0 0 16px;font-size:16px;line-height:1.65;">Tere, {first_name}!</p>
             <p style="margin:0 0 16px;font-size:16px;line-height:1.65;">
               Vastan sulle peagi, et detailid paika saada.
             </p>
@@ -287,7 +286,9 @@ def build_confirmation_text(reference: str, details: dict) -> str:
     lines = [
         f"Tere, {first_name}!",
         "",
-        "Aitäh päringu eest. Vastan sulle peagi.",
+        "Aitäh, sinu päring on käes.",
+        "",
+        "Vastan sulle peagi.",
         "",
         "Sinu päring:",
         f"Tüüp: {format_event_type(details['eventType'])}",
