@@ -623,7 +623,7 @@ body.modal-open {
   inset: 0;
   z-index: 40;
   display: grid;
-  place-items: end center;
+  place-items: center;
   padding: 24px;
 }
 
@@ -643,7 +643,7 @@ body.modal-open {
 .bio-dialog {
   position: relative;
   width: min(760px, 100%);
-  max-height: min(78vh, 760px);
+  max-height: min(84vh, 820px);
   overflow: auto;
   padding: 26px 28px 30px;
   border: 1px solid rgba(22, 25, 29, 0.08);
@@ -857,6 +857,7 @@ body.modal-open {
   }
 
   .bio-modal {
+    place-items: end center;
     padding: 14px 8px 0;
   }
 
