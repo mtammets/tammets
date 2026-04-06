@@ -257,7 +257,7 @@ def build_confirmation_html(reference: str, details: dict) -> str:
             <h1 style="margin:0 0 16px;font-size:30px;line-height:1.05;">Aitäh, sinu päring on käes</h1>
             <p style="margin:0 0 16px;font-size:16px;line-height:1.65;">Tere, {first_name}!</p>
             <p style="margin:0 0 16px;font-size:16px;line-height:1.65;">
-              Sain sinu päringu kätte ja vaatan selle peagi üle. Vastan sulle esimesel võimalusel, et detailid paika saada.
+              Vastan sulle peagi, et detailid paika saada.
             </p>
             <div style="margin:22px 0;padding:18px 20px;border:1px solid #e7dccd;border-radius:18px;background:rgba(255,255,255,0.46);">
               <p style="margin:0 0 12px;color:#5d5347;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">Sinu päring</p>
@@ -275,9 +275,6 @@ def build_confirmation_html(reference: str, details: dict) -> str:
               Tervitades<br />
               <strong>Marek Tammets</strong>
             </p>
-            <p style="margin:18px 0 0;color:#746a5f;font-size:12px;line-height:1.5;">
-              Viide: {escape(reference)}
-            </p>
           </div>
         </div>
       </div>
@@ -290,7 +287,7 @@ def build_confirmation_text(reference: str, details: dict) -> str:
     lines = [
         f"Tere, {first_name}!",
         "",
-        "Aitäh päringu eest. Sain selle kätte ja vastan sulle peagi.",
+        "Aitäh päringu eest. Vastan sulle peagi.",
         "",
         "Sinu päring:",
         f"Tüüp: {format_event_type(details['eventType'])}",
@@ -301,7 +298,6 @@ def build_confirmation_text(reference: str, details: dict) -> str:
         "Kui soovid midagi lisada või täpsustada, vasta sellele kirjale.",
         "",
         "Marek Tammets",
-        f"Viide: {reference}",
     ]
     return "\n".join(lines)
 
