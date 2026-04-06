@@ -9,8 +9,8 @@
   --muted: rgba(245, 239, 229, 0.72);
   --muted-dark: rgba(18, 22, 28, 0.62);
   --ink: #16191d;
-  --surface: #f5efe5;
-  --surface-alt: #ece1d0;
+  --surface: #f3efe7;
+  --surface-alt: #e8dfd2;
   --accent: #d8a463;
   --accent-strong: #c37d56;
   --success: #3a7a55;
@@ -307,16 +307,17 @@ textarea {
   border-radius: 32px;
   color: var(--ink);
   background:
-    radial-gradient(circle at top right, rgba(216, 164, 99, 0.22), transparent 28%),
-    linear-gradient(180deg, #f4ecdf 0%, #ede2d1 100%);
+    radial-gradient(circle at top right, rgba(195, 146, 92, 0.12), transparent 26%),
+    radial-gradient(circle at left 12%, rgba(255, 255, 255, 0.32), transparent 18%),
+    linear-gradient(180deg, #f4f0e8 0%, #ede5d8 100%);
 }
 
 .booking-form::before {
   content: "";
   position: absolute;
   inset: 0 0 auto;
-  height: 5px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  height: 4px;
+  background: linear-gradient(90deg, rgba(207, 154, 96, 0.92), rgba(162, 112, 78, 0.88));
 }
 
 .booking-form-intro {
@@ -365,12 +366,12 @@ textarea {
 .field-card {
   gap: 10px;
   padding: 12px;
-  border: 1px solid rgba(22, 25, 29, 0.08);
+  border: 1px solid rgba(34, 30, 27, 0.08);
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 252, 247, 0.48);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 14px 32px rgba(112, 77, 32, 0.06);
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 16px 34px rgba(92, 70, 44, 0.06);
   transition:
     transform var(--ease),
     border-color var(--ease),
@@ -380,11 +381,11 @@ textarea {
 
 .field-card:focus-within {
   transform: translateY(-1px);
-  border-color: rgba(216, 164, 99, 0.94);
-  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(191, 140, 84, 0.82);
+  background: rgba(255, 252, 247, 0.72);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 16px 36px rgba(112, 77, 32, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 18px 38px rgba(92, 70, 44, 0.1);
 }
 
 .field-label {
@@ -392,7 +393,7 @@ textarea {
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(22, 25, 29, 0.62);
+  color: rgba(22, 25, 29, 0.54);
 }
 
 .booking-form input,
@@ -495,7 +496,7 @@ textarea {
   color: var(--text);
   font-weight: 800;
   letter-spacing: 0.01em;
-  background: linear-gradient(135deg, #14181d, #2f3640);
+  background: linear-gradient(135deg, #171a1f, #2b3138);
   cursor: pointer;
   transition:
     transform var(--ease),
