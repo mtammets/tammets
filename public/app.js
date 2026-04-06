@@ -34,6 +34,11 @@ function showStatus(message, type = "") {
   formStatus.className = `form-status ${type}`.trim();
 }
 
+function trackEvent(name, params = {}) {
+  if (typeof window.gtag !== "function") return;
+  window.gtag("event", name, params);
+}
+
 function ensureVisualImageLoaded(index) {
   const image = visualImages[index];
   if (!image || image.dataset.loaded === "true") return;
@@ -216,6 +221,12 @@ async function handleSubmit(event) {
       const message = result.errors?.join(" ") || result.error || "Päringu saatmine ebaõnnestus.";
       throw new Error(message);
     }
+
+    trackEvent("generate_lead", {
+      form_name: "booking_form",
+      method: "website_form",
+      event_category: "engagement",
+    });
 
     showStatus(result.message || "Päring saadetud.", "success");
     form.reset();
