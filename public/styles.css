@@ -521,6 +521,10 @@ textarea {
   min-height: 162px;
 }
 
+.slot-picker[hidden] + .field-card-note {
+  margin-top: 16px;
+}
+
 .field-card-note textarea {
   min-height: 94px;
   padding: 3px 2px 2px;
