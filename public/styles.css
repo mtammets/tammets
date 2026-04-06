@@ -41,9 +41,9 @@ body {
   color: var(--text);
   font-family: "Manrope", sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(216, 164, 99, 0.18), transparent 28%),
-    radial-gradient(circle at right top, rgba(195, 125, 86, 0.14), transparent 24%),
-    linear-gradient(180deg, #111418 0%, #0d1013 100%);
+    radial-gradient(circle at 22% 10%, rgba(216, 164, 99, 0.08), transparent 30%),
+    radial-gradient(circle at 82% 12%, rgba(195, 125, 86, 0.06), transparent 26%),
+    linear-gradient(180deg, #131418 0%, #101317 18%, #0d1013 100%);
 }
 
 img {
@@ -721,7 +721,7 @@ body.modal-open {
 @media (max-width: 760px) {
   .app-shell {
     width: min(100vw - 18px, 1320px);
-    padding-top: 10px;
+    padding-top: 2px;
   }
 
   .visual-panel {
