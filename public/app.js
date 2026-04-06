@@ -1,5 +1,6 @@
 const form = document.querySelector("#booking-form");
 const eventDateInput = document.querySelector("#event-date");
+const slotPicker = document.querySelector("#slot-picker");
 const slotList = document.querySelector("#slot-list");
 const timeSlotInput = document.querySelector("#time-slot");
 const slotHint = document.querySelector("#slot-hint");
@@ -133,11 +134,13 @@ function renderSlots() {
   timeSlotInput.value = "";
 
   if (!selectedDate) {
-    slotHint.textContent = "Soovi korral vali aeg";
+    slotPicker.hidden = true;
+    slotHint.textContent = "Vali sobiv aeg";
     slotList.innerHTML = "";
     return;
   }
 
+  slotPicker.hidden = false;
   const bookedSlotsForDate = availabilityState.bookedSlots[selectedDate] || [];
   const availableCount = availabilityState.timeSlots.filter((slot) => !bookedSlotsForDate.includes(slot)).length;
 
