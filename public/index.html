@@ -55,20 +55,20 @@
             <div class="form-grid">
               <label class="field-card">
                 <span class="field-label">Nimi</span>
-                <input type="text" name="fullName" placeholder="Kontaktisiku nimi" required />
+                <input type="text" name="fullName" placeholder="Sinu nimi" required />
               </label>
               <label class="field-card">
                 <span class="field-label">E-post</span>
-                <input type="email" name="email" placeholder="kontakt@naide.ee" required />
+                <input type="email" name="email" placeholder="nimi@epost.ee" required />
               </label>
               <label class="field-card">
                 <span class="field-label">Telefon</span>
-                <input type="tel" name="phone" placeholder="+372 5555 5555" required />
+                <input type="tel" name="phone" placeholder="Telefoninumber" required />
               </label>
               <label class="field-card">
                 <span class="field-label">Tüüp</span>
                 <select name="eventType">
-                  <option value="">Vali</option>
+                  <option value="">Mis sündmus?</option>
                   <option value="pulm">Pulm</option>
                   <option value="firmaüritus">Firmaüritus</option>
                   <option value="gala">Gala</option>
@@ -78,7 +78,7 @@
               </label>
               <label class="field-card">
                 <span class="field-label">Külalisi</span>
-                <input type="number" min="10" max="5000" name="guestCount" placeholder="120" />
+                <input type="number" min="10" max="5000" name="guestCount" placeholder="Umbes mitu?" />
               </label>
               <label class="field-card">
                 <span class="field-label">Kuupäev</span>
@@ -86,7 +86,7 @@
               </label>
               <label class="field-card form-grid-full">
                 <span class="field-label">Asukoht</span>
-                <input type="text" name="location" placeholder="Tallinn, Tartu, Pärnu..." />
+                <input type="text" name="location" placeholder="Kus üritus toimub?" />
               </label>
             </div>
 
@@ -104,7 +104,7 @@
               <textarea
                 name="notes"
                 rows="4"
-                placeholder="Lühidalt stiil, oluline programm või erisoovid."
+                placeholder="Soovi korral paar sõna õhtu kohta."
               ></textarea>
             </label>
 
