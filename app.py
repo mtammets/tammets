@@ -58,6 +58,7 @@ RESEND_FROM_NAME = os.getenv("RESEND_FROM_NAME", "Marek Tammets").strip()
 BOOKING_TO_EMAIL = os.getenv("BOOKING_TO_EMAIL", "marek@tammets.ee").strip()
 BOOKING_BCC_EMAIL = os.getenv("BOOKING_BCC_EMAIL", "").strip()
 Response = tuple[HTTPStatus, list[tuple[str, str]], bytes]
+LONG_CACHE_SUFFIXES = {".css", ".js", ".jpg", ".jpeg", ".png", ".webp", ".svg"}
 
 
 class DeliveryError(Exception):
@@ -287,7 +288,15 @@ def static_response(raw_path: str) -> Response:
 
     mime_type = mimetypes.guess_type(requested_file.name)[0] or "application/octet-stream"
     content = requested_file.read_bytes()
-    return HTTPStatus.OK, [("Content-Type", mime_type), ("Content-Length", str(len(content)))], content
+    cache_control = "no-cache"
+    if requested_file.suffix.lower() in LONG_CACHE_SUFFIXES:
+        cache_control = "public, max-age=31536000, immutable"
+
+    return HTTPStatus.OK, [
+        ("Content-Type", mime_type),
+        ("Content-Length", str(len(content))),
+        ("Cache-Control", cache_control),
+    ], content
 
 
 def handle_post_request(path: str, raw_body: bytes) -> Response:

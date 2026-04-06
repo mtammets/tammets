@@ -6,6 +6,7 @@ const slotHint = document.querySelector("#slot-hint");
 const formStatus = document.querySelector("#form-status");
 const visualSlides = Array.from(document.querySelectorAll("[data-visual-slide]"));
 const visualDots = Array.from(document.querySelectorAll("[data-visual-dot]"));
+const visualImages = Array.from(document.querySelectorAll("[data-visual-image]"));
 const bioTrigger = document.querySelector("#bio-trigger");
 const bioModal = document.querySelector("#bio-modal");
 const bioCloseButtons = Array.from(document.querySelectorAll("[data-bio-close]"));
@@ -32,12 +33,26 @@ function showStatus(message, type = "") {
   formStatus.className = `form-status ${type}`.trim();
 }
 
+function ensureVisualImageLoaded(index) {
+  const image = visualImages[index];
+  if (!image || image.dataset.loaded === "true") return;
+
+  const nextSrc = image.dataset.src;
+  if (!nextSrc) return;
+
+  image.src = nextSrc;
+  image.dataset.loaded = "true";
+}
+
 function setupVisualRotation() {
   if (visualSlides.length < 2) return;
 
   let activeIndex = 0;
 
   const renderVisualState = (nextIndex) => {
+    ensureVisualImageLoaded(nextIndex);
+    ensureVisualImageLoaded((nextIndex + 1) % visualSlides.length);
+
     visualSlides.forEach((slide, index) => {
       slide.classList.toggle("is-active", index === nextIndex);
     });
@@ -48,6 +63,22 @@ function setupVisualRotation() {
 
     activeIndex = nextIndex;
   };
+
+  ensureVisualImageLoaded(0);
+  ensureVisualImageLoaded(1);
+
+  window.setTimeout(() => {
+    let preloadIndex = 2;
+
+    const preloadRemaining = () => {
+      if (preloadIndex >= visualSlides.length) return;
+      ensureVisualImageLoaded(preloadIndex);
+      preloadIndex += 1;
+      window.setTimeout(preloadRemaining, 700);
+    };
+
+    preloadRemaining();
+  }, 1200);
 
   window.setInterval(() => {
     const nextIndex = (activeIndex + 1) % visualSlides.length;
