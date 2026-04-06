@@ -167,12 +167,6 @@ textarea {
   z-index: 2;
 }
 
-.visual-actions {
-  display: grid;
-  gap: 12px;
-  justify-items: flex-start;
-}
-
 .visual-indicators {
   position: absolute;
   top: 24px;
@@ -344,6 +338,21 @@ textarea {
 .content-panel {
   display: grid;
   gap: 14px;
+}
+
+.site-footer {
+  display: flex;
+  justify-content: center;
+  padding: 14px 0 4px;
+}
+
+.site-footer .social-links {
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(14px);
 }
 
 .booking-form {
@@ -789,10 +798,6 @@ body.modal-open {
     min-height: 42px;
     padding: 0 14px;
     font-size: 0.94rem;
-  }
-
-  .visual-actions {
-    gap: 10px;
   }
 
   .social-links {
