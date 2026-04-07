@@ -76,6 +76,7 @@ CONTENT_SECURITY_POLICY = (
 SECURITY_HEADERS = [
     ("X-Frame-Options", "DENY"),
     ("X-Content-Type-Options", "nosniff"),
+    ("Cross-Origin-Resource-Policy", "same-origin"),
     ("Referrer-Policy", "strict-origin-when-cross-origin"),
     ("Permissions-Policy", "camera=(), microphone=(), geolocation=()"),
     ("Strict-Transport-Security", "max-age=31536000"),
