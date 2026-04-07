@@ -60,6 +60,27 @@ BOOKING_BCC_EMAIL = os.getenv("BOOKING_BCC_EMAIL", "").strip()
 BOOKING_REPLY_TO_EMAIL = os.getenv("BOOKING_REPLY_TO_EMAIL", BOOKING_TO_EMAIL.split(",")[0].strip()).strip()
 Response = tuple[HTTPStatus, list[tuple[str, str]], bytes]
 LONG_CACHE_SUFFIXES = {".css", ".js", ".jpg", ".jpeg", ".png", ".webp", ".svg"}
+CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; "
+    "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; "
+    "style-src 'self' https://fonts.googleapis.com; "
+    "img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com; "
+    "font-src 'self' https://fonts.gstatic.com data:; "
+    "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com; "
+    "object-src 'none'; "
+    "base-uri 'self'; "
+    "frame-ancestors 'none'; "
+    "frame-src 'none'; "
+    "form-action 'self'"
+)
+SECURITY_HEADERS = [
+    ("X-Frame-Options", "DENY"),
+    ("X-Content-Type-Options", "nosniff"),
+    ("Referrer-Policy", "strict-origin-when-cross-origin"),
+    ("Permissions-Policy", "camera=(), microphone=(), geolocation=()"),
+    ("Strict-Transport-Security", "max-age=31536000"),
+    ("Content-Security-Policy", CONTENT_SECURITY_POLICY),
+]
 
 
 class DeliveryError(Exception):
@@ -68,6 +89,15 @@ class DeliveryError(Exception):
 
 def resend_is_configured() -> bool:
     return bool(RESEND_API_KEY and RESEND_FROM_EMAIL and BOOKING_TO_EMAIL)
+
+
+def with_security_headers(headers: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    existing = {name.lower() for name, _ in headers}
+    merged = list(headers)
+    for header_name, header_value in SECURITY_HEADERS:
+        if header_name.lower() not in existing:
+            merged.append((header_name, header_value))
+    return merged
 
 
 def parse_email_list(raw_value: str) -> list[str]:
@@ -389,7 +419,8 @@ def send_confirmation_email_via_resend(reference: str, details: dict) -> str:
 
 def json_response(payload: dict, status: HTTPStatus = HTTPStatus.OK) -> Response:
     encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    return status, [("Content-Type", "application/json; charset=utf-8"), ("Content-Length", str(len(encoded)))], encoded
+    headers = [("Content-Type", "application/json; charset=utf-8"), ("Content-Length", str(len(encoded)))]
+    return status, with_security_headers(headers), encoded
 
 
 def static_response(raw_path: str) -> Response:
@@ -417,11 +448,12 @@ def static_response(raw_path: str) -> Response:
     if requested_file.suffix.lower() in LONG_CACHE_SUFFIXES:
         cache_control = "public, max-age=31536000, immutable"
 
-    return HTTPStatus.OK, [
+    headers = [
         ("Content-Type", mime_type),
         ("Content-Length", str(len(content))),
         ("Cache-Control", cache_control),
-    ], content
+    ]
+    return HTTPStatus.OK, with_security_headers(headers), content
 
 
 def handle_post_request(path: str, raw_body: bytes) -> Response:
